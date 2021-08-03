@@ -116,6 +116,54 @@ class EstateProperty(models.Model):
             self.garden_area = 0
             self.garden_orientation = False
 
+    '''
+    @api.one
+    def create_customer_invoice(self):
+        """
+        Method to open create customer invoice form
+        """
+        # Get the client id from transport form
+        client_id = self.client_id
+
+        #Initialize required parameters for opening the form view of invoice
+        #Get the view ref. by paasing module & name of the required form
+        view_ref = self.env['ir.model.data'].get_object_reference('account', 'invoice_form')
+        view_id = view_ref[1] if view_ref else False
+
+        #Let's prepare a dictionary with all necessary info to open create invoice form with
+        #customer/client pre-selected
+        res = {
+            'type': 'ir.actions.act_window',
+            'name': _('Customer Invoice'),
+            'res_model': 'account.invoice',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'view_id': view_id,
+            'target': 'inline',
+            'context': {'default_partner_id': client_id}
+        }
+
+        return res'''
+
+    def open_to_form_edit_view(self):        
+        return {
+            'name': 'This Caption',
+            'type': 'ir.actions.act_window',
+            'res_model': 'estate.property',
+            'views': [ [False, 'form'], ],
+            'view_mode': 'form',
+            'view_type': 'form',
+            'view_id': ['estate_property_view_form'],
+            #'flags': {'initial_mode': 'view', 'action_buttons':False},
+            'flags': {'form': {'action_buttons': False, 'options': {'mode': 'edit'}}},
+            #'target': 'current', #tree view -> formview with read model and Nav of selectd
+            'target': 'new',#pop-up window with edit mode
+            #'target': 'inline', #tree view -> formview with edit mode
+            #target: ‘new‘弹出框默认为编辑模式，需要只读模式的可以加上这句
+            #'nodestroy': True,
+            'res_id': self.id,
+        }
+
     # ------------------------------------------ CRUD Methods -------------------------------------
     #raise UserError("The offer must be higher than %.2f" % max_offer)
     def unlink(self):
@@ -125,7 +173,9 @@ class EstateProperty(models.Model):
 
     # ---------------------------------------- Action Methods -------------------------------------
 
+
     def action_sold(self):
+        #self.ensure_one()#Throw exception if multi records were selected
         if "canceled" in self.mapped("state"):
             raise UserError("Canceled properties cannot be sold.")
         return self.write({"state": "sold"})
